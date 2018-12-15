@@ -4,6 +4,7 @@ import android.app.Application;
 import android.os.Handler;
 
 import com.jamff.alipay.bean.LoginResultBean;
+import com.jamff.alipay.util.CrashHandler;
 import com.jamff.alipay.util.UIUtils;
 
 /**
@@ -23,6 +24,7 @@ public class BaseApplication extends Application {
     public void onCreate() {
         super.onCreate();
         UIUtils.init(this, new Handler(), android.os.Process.myTid());
+        CrashHandler.getInstance().init(this);
     }
 
     public static LoginResultBean.DataBean getUserInfo() {

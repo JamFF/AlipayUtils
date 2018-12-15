@@ -2,7 +2,9 @@ package com.jamff.alipay;
 
 public interface Constant {
 
-    boolean IS_DEBUG = false;
+    boolean IS_DEBUG = true;
+
+    boolean IS_WRITE_FILE = true;
 
     String TAG_ACTIVITY = "tag_activity";
 
@@ -14,7 +16,11 @@ public interface Constant {
 
     String TAG_HTTP = "tag_http";
 
+    String TAG_PERMISSIONS = "tag_permissions";
+
     String BASE_URL = "http://inter.arphoto.fun/";
+
+    String LOG_PATH = "/payUtils/";
 
     /**
      * 网络请求成功

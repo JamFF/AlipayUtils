@@ -151,6 +151,18 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
                         LogUtil.e(Constant.TAG_HTTP, "login onFailure: " + t);
                     }
                 });
+
+        /*ApiFactory.getInstance().getApiService().login(data).enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+                LogUtil.i(Constant.TAG_HTTP, "login success: " + response.body());
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                LogUtil.e(Constant.TAG_HTTP, "login onFailure: " + t);
+            }
+        });*/
     }
 
     /**
