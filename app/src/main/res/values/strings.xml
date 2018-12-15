@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Alipay</string>
+    <string name="app_name">收单吧</string>
     <string name="input_name">输入终端号</string>
     <string name="input_password">输入密码</string>
 

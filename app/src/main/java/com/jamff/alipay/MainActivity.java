@@ -1,9 +1,11 @@
 package com.jamff.alipay;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -18,6 +20,7 @@ import android.widget.FrameLayout;
 import com.jamff.alipay.api.ApiFactory;
 import com.jamff.alipay.bean.EndParamBean;
 import com.jamff.alipay.ui.LoginFragment;
+import com.jamff.alipay.ui.OnFragmentInteractionListener;
 import com.jamff.alipay.ui.TradeFragment;
 import com.jamff.alipay.util.GsonUtil;
 import com.jamff.alipay.util.LogUtil;
@@ -28,10 +31,14 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements
-        LoginFragment.OnFragmentInteractionListener, TradeFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements OnFragmentInteractionListener {
 
     private FrameLayout mRoot;
+
+    // 避免锁屏
+    private PowerManager.WakeLock mWakelock;
+
+    private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +59,30 @@ public class MainActivity extends AppCompatActivity implements
         }
 
         requestPermission();
+
+        initData();
+    }
+
+    private void initData() {
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        if (pm == null) {
+            return;
+        }
+        mWakelock = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP |
+                PowerManager.SCREEN_DIM_WAKE_LOCK, "alipayutils:waketag");
+        if (mWakelock == null) {
+            return;
+        }
+        mWakelock.acquire();
     }
 
     @Override
     protected void onDestroy() {
         LogUtil.d(Constant.TAG_ACTIVITY, "onDestroy: ");
+        if (mWakelock != null) {
+            // 释放
+            mWakelock.release();
+        }
         super.onDestroy();
     }
 
@@ -64,6 +90,25 @@ public class MainActivity extends AppCompatActivity implements
     public void onBackPressed() {
         LogUtil.d(Constant.TAG_ACTIVITY, "onBackPressed: ");
         end();
+    }
+
+    @Override
+    public void showProgressDialog(String text) {
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            mProgressDialog.setCanceledOnTouchOutside(false);
+            // mProgressDialog.setCancelable(false);
+        }
+        mProgressDialog.setMessage(text);
+        mProgressDialog.show();
+    }
+
+    @Override
+    public void dismissProgressDialog() {
+        if (mProgressDialog != null) {
+            mProgressDialog.dismiss();
+        }
     }
 
     @Override
@@ -75,7 +120,6 @@ public class MainActivity extends AppCompatActivity implements
 
         startAccessibilityService();
 
-        // TODO: 2018/12/14 开启后跳转
         TradeFragment fragment = new TradeFragment();
         getSupportFragmentManager().beginTransaction()
                 .replace(mRoot.getId(), fragment)
@@ -92,8 +136,8 @@ public class MainActivity extends AppCompatActivity implements
                     android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
             LogUtil.d(Constant.TAG_SERVICE, "accessibilityEnabled = " + accessibilityEnabled);
         } catch (Settings.SettingNotFoundException e) {
-            LogUtil.e(Constant.TAG_SERVICE, "Error finding setting, default accessibility to not found: "
-                    + e.getMessage());
+            LogUtil.e(Constant.TAG_SERVICE,
+                    "Error finding setting, default accessibility to not found: " + e.getMessage());
         }
         TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
 
@@ -107,9 +151,11 @@ public class MainActivity extends AppCompatActivity implements
                 while (mStringColonSplitter.hasNext()) {
                     String accessibilityService = mStringColonSplitter.next();
 
-                    LogUtil.d(Constant.TAG_SERVICE, "accessibilityService :: " + accessibilityService + " " + service);
+                    LogUtil.d(Constant.TAG_SERVICE, "accessibilityService: " +
+                            accessibilityService + " " + service);
                     if (accessibilityService.equalsIgnoreCase(service)) {
-                        LogUtil.d(Constant.TAG_SERVICE, "We've found the correct setting - accessibility is switched on!");
+                        LogUtil.d(Constant.TAG_SERVICE,
+                                "We've found the correct setting - accessibility is switched on!");
                         return false;
                     }
                 }
@@ -163,6 +209,8 @@ public class MainActivity extends AppCompatActivity implements
             return;
         }
 
+        showProgressDialog("退出中");
+
         String data = GsonUtil.bean2Json(new EndParamBean(BaseApplication.getUserInfo().getDevice_id()));
         LogUtil.d(Constant.TAG_HTTP, "data = " + data);
 
@@ -172,6 +220,7 @@ public class MainActivity extends AppCompatActivity implements
                     public void onResponse(@NonNull Call<String> call,
                                            @NonNull Response<String> response) {
                         LogUtil.d(Constant.TAG_HTTP, "end onResponse: " + response.body());
+                        dismissProgressDialog();
                         finish();
                     }
 
@@ -179,6 +228,7 @@ public class MainActivity extends AppCompatActivity implements
                     public void onFailure(@NonNull Call<String> call,
                                           @NonNull Throwable t) {
                         LogUtil.e(Constant.TAG_HTTP, "end onFailure: " + t);
+                        dismissProgressDialog();
                         finish();
                     }
                 });
@@ -218,7 +268,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case Constant.REQUEST_CODE: {
@@ -226,19 +277,15 @@ public class MainActivity extends AppCompatActivity implements
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     LogUtil.d(Constant.TAG_PERMISSIONS, "onRequestPermissionsResult granted");
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
+                    // permission was granted, yay! Do the contacts-related task you need to do.
 
                 } else {
                     LogUtil.d(Constant.TAG_PERMISSIONS, "onRequestPermissionsResult denied");
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
+                    // permission denied, boo! Disable the functionality that depends on this permission.
                     showWaringDialog();
                 }
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
+            break;
         }
     }
 

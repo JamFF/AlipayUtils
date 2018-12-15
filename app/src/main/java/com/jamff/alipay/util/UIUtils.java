@@ -2,6 +2,8 @@ package com.jamff.alipay.util;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Handler;
 
@@ -99,5 +101,31 @@ public class UIUtils {
      */
     public static void postDelayedTaskSafely(Runnable task, long delayMillis) {
         getMainThreadHandler().postDelayed(task, delayMillis);
+    }
+
+    /**
+     * 获取versionCode
+     */
+    public static int getVersionCode() {
+        try {
+            PackageInfo pi = UIUtils.getContext().getPackageManager().getPackageInfo(UIUtils.getContext().getPackageName(), 0);
+            return pi.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    /**
+     * 获取versionName
+     */
+    public static String getVersionName() {
+        try {
+            PackageInfo pi = UIUtils.getContext().getPackageManager().getPackageInfo(UIUtils.getContext().getPackageName(), 0);
+            return pi.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 }

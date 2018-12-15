@@ -22,13 +22,6 @@ import com.jamff.alipay.util.LogUtil;
  */
 public class TradeFragment extends Fragment implements View.OnClickListener {
 
-    public interface OnFragmentInteractionListener {
-
-        boolean startAlipay();
-
-        void exit();
-    }
-
     private OnFragmentInteractionListener mListener;
 
     private Button bt_start;

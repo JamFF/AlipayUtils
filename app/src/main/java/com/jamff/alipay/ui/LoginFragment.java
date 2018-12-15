@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.jamff.alipay.BaseApplication;
 import com.jamff.alipay.Constant;
@@ -21,6 +22,7 @@ import com.jamff.alipay.util.GsonUtil;
 import com.jamff.alipay.util.LogUtil;
 import com.jamff.alipay.util.StringUtils;
 import com.jamff.alipay.util.ToastUtil;
+import com.jamff.alipay.util.UIUtils;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -44,6 +46,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     private String username;
     private String password;
 
+    private TextView tv_version;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -65,6 +69,9 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         til_password = view.findViewById(R.id.til_password);
         et_username = til_username.getEditText();
         et_password = til_password.getEditText();
+
+        tv_version = view.findViewById(R.id.tv_version);
+        tv_version.setText(UIUtils.getVersionName());
 
         view.findViewById(R.id.bt_login).setOnClickListener(this);
 
@@ -102,12 +109,11 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    public interface OnFragmentInteractionListener {
-
-        void onLoginSuccess();
-    }
-
     private void login(LoginParamBean bean) {
+
+        if (mListener != null) {
+            mListener.showProgressDialog("登录中");
+        }
 
         String data = GsonUtil.bean2Json(bean);
         LogUtil.d(Constant.TAG_HTTP, "data = " + data);
@@ -123,24 +129,34 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
 
                         if (resultBean == null) {
                             loginFail("登录失败", "login onResponse: LoginResultBean is null");
+                            if (mListener != null) {
+                                mListener.dismissProgressDialog();
+                            }
                             return;
                         }
 
                         if (resultBean.getErrcode() == Constant.HTTP_OK) {
                             if (resultBean.getData() == null) {
                                 loginFail("登录失败", "login onResponse: LoginResultBean.DataBean is null");
+                                if (mListener != null) {
+                                    mListener.dismissProgressDialog();
+                                }
                                 return;
                             }
                             LogUtil.i(Constant.TAG_HTTP, "login success: " + resultBean.getData());
                             BaseApplication.setUserInfo(resultBean.getData());
                             if (mListener != null) {
                                 mListener.onLoginSuccess();
+                                mListener.dismissProgressDialog();
                             }
                         } else {
                             if (StringUtils.isEmpty(resultBean.getMsg())) {
                                 loginFail("登录失败", "login onResponse: msg is empty");
                             } else {
                                 loginFail(resultBean.getMsg(), "login onResponse: " + resultBean.getMsg());
+                            }
+                            if (mListener != null) {
+                                mListener.dismissProgressDialog();
                             }
                         }
                     }
