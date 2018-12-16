@@ -10,12 +10,12 @@ public class NotifyResultBean {
     /**
      * errcode : 10000
      * msg : ok
-     * data :
+     * data : {}
      * sign : 04A8DB45A3EE377DC809B43DF822E50D
      */
     private int errcode;
     private String msg;
-    private String data;
+    private DataBean data;
     private String sign;
 
     public int getErrcode() {
@@ -34,12 +34,24 @@ public class NotifyResultBean {
         this.msg = msg;
     }
 
-    public String getData() {
+    public DataBean getData() {
         return data;
     }
 
-    public void setData(String data) {
+    public void setData(DataBean data) {
         this.data = data;
+    }
+
+    public String getSign() {
+        return sign;
+    }
+
+    public void setSign(String sign) {
+        this.sign = sign;
+    }
+
+    public static class DataBean {
+
     }
 
     @Override
@@ -47,7 +59,6 @@ public class NotifyResultBean {
         return "NotifyResultBean{" +
                 "errcode=" + errcode +
                 ", msg='" + msg + '\'' +
-                ", data='" + data + '\'' +
                 ", sign='" + sign + '\'' +
                 '}';
     }

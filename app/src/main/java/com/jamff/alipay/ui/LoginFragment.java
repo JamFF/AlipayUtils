@@ -46,8 +46,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     private String username;
     private String password;
 
-    private TextView tv_version;
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -70,7 +68,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         et_username = til_username.getEditText();
         et_password = til_password.getEditText();
 
-        tv_version = view.findViewById(R.id.tv_version);
+        TextView tv_version = view.findViewById(R.id.tv_version);
         tv_version.setText(UIUtils.getVersionName());
 
         view.findViewById(R.id.bt_login).setOnClickListener(this);

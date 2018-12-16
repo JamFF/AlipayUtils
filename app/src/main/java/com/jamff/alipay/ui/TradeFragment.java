@@ -24,7 +24,6 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
 
     private OnFragmentInteractionListener mListener;
 
-    private Button bt_start;
     private Button bt_end;
 
     @Override
@@ -39,8 +38,7 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
         TextView tv_merchant_no = view.findViewById(R.id.tv_merchant_no);
         tv_merchant_no.setText(BaseApplication.getUserInfo().getMerchant_no());
 
-        bt_start = view.findViewById(R.id.bt_start);
-        bt_start.setOnClickListener(this);
+        view.findViewById(R.id.bt_start).setOnClickListener(this);
 
         bt_end = view.findViewById(R.id.bt_end);
         bt_end.setOnClickListener(this);
@@ -83,17 +81,13 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.bt_start:
-                if (!BaseApplication.isStart()) {
-                    // 开始
-                    startService();
-                }
+                // 开始
+                startService();
                 break;
 
             case R.id.bt_end:
-                if (BaseApplication.isStart()) {
-                    // 停止
-                    stopService();
-                }
+                // 停止
+                stopService();
                 break;
         }
     }
@@ -102,7 +96,6 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
         if (mListener != null) {
             if (mListener.startAlipay()) {
                 BaseApplication.setStart(true);
-                bt_start.setEnabled(false);
                 bt_end.setVisibility(View.VISIBLE);
             }
         }

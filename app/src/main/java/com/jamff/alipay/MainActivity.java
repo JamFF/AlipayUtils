@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        LogUtil.d(Constant.TAG_ACTIVITY, "versionName = " + UIUtils.getVersionName());
         mRoot = new FrameLayout(this);
         mRoot.setId(View.generateViewId());// API 17以上
         findViewById(mRoot.getId());
@@ -134,15 +135,14 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             accessibilityEnabled = Settings.Secure.getInt(
                     UIUtils.getContext().getContentResolver(),
                     android.provider.Settings.Secure.ACCESSIBILITY_ENABLED);
-            LogUtil.d(Constant.TAG_SERVICE, "accessibilityEnabled = " + accessibilityEnabled);
+            // LogUtil.d(Constant.TAG_SERVICE, "accessibilityEnabled = " + accessibilityEnabled);
         } catch (Settings.SettingNotFoundException e) {
-            LogUtil.e(Constant.TAG_SERVICE,
-                    "Error finding setting, default accessibility to not found: " + e.getMessage());
+            // LogUtil.e(Constant.TAG_SERVICE, "Error finding setting, default accessibility to not found: " + e.getMessage());
         }
         TextUtils.SimpleStringSplitter mStringColonSplitter = new TextUtils.SimpleStringSplitter(':');
 
         if (accessibilityEnabled == 1) {
-            LogUtil.d(Constant.TAG_SERVICE, "ACCESSIBILITY IS ENABLED");
+            // LogUtil.d(Constant.TAG_SERVICE, "ACCESSIBILITY IS ENABLED");
             String settingValue = Settings.Secure.getString(
                     UIUtils.getContext().getContentResolver(),
                     Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
@@ -151,17 +151,15 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 while (mStringColonSplitter.hasNext()) {
                     String accessibilityService = mStringColonSplitter.next();
 
-                    LogUtil.d(Constant.TAG_SERVICE, "accessibilityService: " +
-                            accessibilityService + " " + service);
+                    // LogUtil.d(Constant.TAG_SERVICE, "accessibilityService: " + accessibilityService + " " + service);
                     if (accessibilityService.equalsIgnoreCase(service)) {
-                        LogUtil.d(Constant.TAG_SERVICE,
-                                "We've found the correct setting - accessibility is switched on!");
+                        // LogUtil.d(Constant.TAG_SERVICE, "We've found the correct setting - accessibility is switched on!");
                         return false;
                     }
                 }
             }
         } else {
-            LogUtil.d(Constant.TAG_SERVICE, "ACCESSIBILITY IS DISABLED");
+            // LogUtil.d(Constant.TAG_SERVICE, "ACCESSIBILITY IS DISABLED");
         }
 
         return true;

@@ -2,9 +2,9 @@ package com.jamff.alipay;
 
 public interface Constant {
 
-    boolean IS_DEBUG = true;
+    boolean IS_DEBUG = false;
 
-    boolean IS_WRITE_FILE = true;
+    boolean IS_WRITE_FILE = false;
 
     String TAG_ACTIVITY = "tag_activity";
 
