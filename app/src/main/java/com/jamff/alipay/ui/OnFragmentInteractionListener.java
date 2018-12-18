@@ -27,9 +27,9 @@ public interface OnFragmentInteractionListener {
     /**
      * 打开支付宝
      *
-     * @return
+     * @return false 失败，未安装支付宝
      */
-    boolean startAlipay();
+    boolean openAlipay();
 
     /**
      * 退出应用

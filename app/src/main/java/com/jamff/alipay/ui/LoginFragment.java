@@ -61,6 +61,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        LogUtil.d(Constant.TAG_LOGIN, "onCreateView: ");
+
         View view = inflater.inflate(R.layout.fragment_login, container, false);
 
         til_username = view.findViewById(R.id.til_username);
@@ -114,7 +116,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         }
 
         String data = GsonUtil.bean2Json(bean);
-        LogUtil.d(Constant.TAG_HTTP, "data = " + data);
+        LogUtil.d(Constant.TAG_HTTP, "login data = " + data);
 
         ApiFactory.getInstance().getApiService().login(data).enqueue(
                 new Callback<LoginResultBean>() {

@@ -2,6 +2,7 @@ package com.jamff.alipay;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -38,19 +39,21 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     // 避免锁屏
     private PowerManager.WakeLock mWakelock;
 
+    // 网络请求加载框
     private ProgressDialog mProgressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        LogUtil.d(Constant.TAG_ACTIVITY, "versionName = " + UIUtils.getVersionName());
         mRoot = new FrameLayout(this);
         mRoot.setId(View.generateViewId());// API 17以上
         findViewById(mRoot.getId());
         mRoot.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(mRoot);
+
+        requestPermission();
 
         if (savedInstanceState == null) {
             LoginFragment fragment = new LoginFragment();
@@ -59,12 +62,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                     .commit();
         }
 
-        requestPermission();
-
         initData();
     }
 
     private void initData() {
+        LogUtil.d(Constant.TAG_ACTIVITY, "versionName = " + UIUtils.getVersionName());
+
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
         if (pm == null) {
             return;
@@ -90,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     @Override
     public void onBackPressed() {
         LogUtil.d(Constant.TAG_ACTIVITY, "onBackPressed: ");
-        end();
+        exit();
     }
 
     @Override
@@ -184,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     @Override
-    public boolean startAlipay() {
+    public boolean openAlipay() {
         Intent intent = getPackageManager().getLaunchIntentForPackage(Constant.ALIPAY_PACKAGE_NAME);
         if (intent == null) {
             ToastUtil.showShort("尚未安装支付宝");
@@ -197,7 +200,17 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     @Override
     public void exit() {
-        end();
+
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("确定退出")
+                .setNegativeButton("取消", null)
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        end();
+                    }
+                })
+                .show();
     }
 
     private void end() {
@@ -210,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         showProgressDialog("退出中");
 
         String data = GsonUtil.bean2Json(new EndParamBean(BaseApplication.getUserInfo().getDevice_id()));
-        LogUtil.d(Constant.TAG_HTTP, "data = " + data);
+        LogUtil.d(Constant.TAG_HTTP, "exit data = " + data);
 
         ApiFactory.getInstance().getApiService().end(data).enqueue(
                 new Callback<String>() {
@@ -234,7 +247,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     private void requestPermission() {
 
-        LogUtil.d(Constant.TAG_PERMISSIONS, "requestPermission");
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -262,6 +274,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
+        } else {
+            LogUtil.d(Constant.TAG_PERMISSIONS, "permission = true");
         }
     }
 

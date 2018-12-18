@@ -19,7 +19,22 @@ public class LogUtil {
 
     public static void i(String tag, String msg) {
         if (Constant.IS_DEBUG) {
-            Log.i(tag, msg);
+
+            StackTraceElement[] list = Thread.currentThread().getStackTrace();
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            if (list.length > 3) {
+                sb.append(list[3].getFileName()).append("_").append(list[3].getMethodName()).append("_").append(list[3].getLineNumber()).append("_");
+            }
+            /*if (list.length > 4) {
+                sb.append(list[4].getFileName()).append("_").append(list[4].getMethodName()).append("_").append(list[4].getLineNumber()).append("_");
+            }
+            if (list.length > 5) {
+                sb.append(list[5].getFileName()).append("_").append(list[5].getMethodName()).append("_").append(list[5].getLineNumber());
+            }*/
+            sb.append("] ");
+
+            Log.i(tag, sb.toString() + msg);
         }
 
         printLine("I: " + tag + " : " + msg);
@@ -27,7 +42,22 @@ public class LogUtil {
 
     public static void d(String tag, String msg) {
         if (Constant.IS_DEBUG) {
-            Log.d(tag, msg);
+
+            StackTraceElement[] list = Thread.currentThread().getStackTrace();
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            if (list.length > 3) {
+                sb.append(list[3].getFileName()).append("_").append(list[3].getMethodName()).append("_").append(list[3].getLineNumber()).append("_");
+            }
+            /*if (list.length > 4) {
+                sb.append(list[4].getFileName()).append("_").append(list[4].getMethodName()).append("_").append(list[4].getLineNumber()).append("_");
+            }
+            if (list.length > 5) {
+                sb.append(list[5].getFileName()).append("_").append(list[5].getMethodName()).append("_").append(list[5].getLineNumber());
+            }*/
+            sb.append("] ");
+
+            Log.d(tag, sb.toString() + msg);
         }
 
         printLine("D: " + tag + " : " + msg);
@@ -35,7 +65,22 @@ public class LogUtil {
 
     public static void w(String tag, String msg) {
         if (Constant.IS_DEBUG) {
-            Log.w(tag, msg);
+
+            StackTraceElement[] list = Thread.currentThread().getStackTrace();
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            if (list.length > 3) {
+                sb.append(list[3].getFileName()).append("_").append(list[3].getMethodName()).append("_").append(list[3].getLineNumber()).append("_");
+            }
+            /*if (list.length > 4) {
+                sb.append(list[4].getFileName()).append("_").append(list[4].getMethodName()).append("_").append(list[4].getLineNumber()).append("_");
+            }
+            if (list.length > 5) {
+                sb.append(list[5].getFileName()).append("_").append(list[5].getMethodName()).append("_").append(list[5].getLineNumber());
+            }*/
+            sb.append("] ");
+
+            Log.w(tag, sb.toString() + msg);
         }
 
         printLine("W: " + tag + " : " + msg);
@@ -43,7 +88,22 @@ public class LogUtil {
 
     public static void e(String tag, String msg) {
         if (Constant.IS_DEBUG) {
-            Log.e(tag, msg);
+
+            StackTraceElement[] list = Thread.currentThread().getStackTrace();
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            if (list.length > 3) {
+                sb.append(list[3].getFileName()).append("_").append(list[3].getMethodName()).append("_").append(list[3].getLineNumber()).append("_");
+            }
+            /*if (list.length > 4) {
+                sb.append(list[4].getFileName()).append("_").append(list[4].getMethodName()).append("_").append(list[4].getLineNumber()).append("_");
+            }
+            if (list.length > 5) {
+                sb.append(list[5].getFileName()).append("_").append(list[5].getMethodName()).append("_").append(list[5].getLineNumber());
+            }*/
+            sb.append("] ");
+
+            Log.e(tag, sb.toString() + msg);
         }
 
         printLine("E: " + tag + " : " + msg);
@@ -51,7 +111,22 @@ public class LogUtil {
 
     public static void e(String tag, String msg, Throwable tr) {
         if (Constant.IS_DEBUG) {
-            Log.e(tag, msg, tr);
+
+            StackTraceElement[] list = Thread.currentThread().getStackTrace();
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            if (list.length > 3) {
+                sb.append(list[3].getFileName()).append("_").append(list[3].getMethodName()).append("_").append(list[3].getLineNumber()).append("_");
+            }
+            /*if (list.length > 4) {
+                sb.append(list[4].getFileName()).append("_").append(list[4].getMethodName()).append("_").append(list[4].getLineNumber()).append("_");
+            }
+            if (list.length > 5) {
+                sb.append(list[5].getFileName()).append("_").append(list[5].getMethodName()).append("_").append(list[5].getLineNumber());
+            }*/
+            sb.append("] ");
+
+            Log.e(tag, sb.toString() + msg, tr);
         }
 
         printLine("E: " + tag + " : " + msg);

@@ -14,6 +14,7 @@ import com.jamff.alipay.BaseApplication;
 import com.jamff.alipay.Constant;
 import com.jamff.alipay.R;
 import com.jamff.alipay.util.LogUtil;
+import com.jamff.alipay.util.UIUtils;
 
 /**
  * description:
@@ -30,6 +31,8 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
+        LogUtil.d(Constant.TAG_TRADE, "onCreateView: ");
+
         View view = inflater.inflate(R.layout.fragment_trade, container, false);
 
         TextView tv_device_no = view.findViewById(R.id.tv_device_no);
@@ -37,6 +40,9 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
 
         TextView tv_merchant_no = view.findViewById(R.id.tv_merchant_no);
         tv_merchant_no.setText(BaseApplication.getUserInfo().getMerchant_no());
+
+        TextView tv_version = view.findViewById(R.id.tv_version);
+        tv_version.setText(UIUtils.getVersionName());
 
         view.findViewById(R.id.bt_start).setOnClickListener(this);
 
@@ -94,7 +100,8 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
 
     private void startService() {
         if (mListener != null) {
-            if (mListener.startAlipay()) {
+            if (mListener.openAlipay()) {
+                LogUtil.d(Constant.TAG_TRADE, "Successfully open the Alipay");
                 BaseApplication.setStart(true);
                 bt_end.setVisibility(View.VISIBLE);
             }

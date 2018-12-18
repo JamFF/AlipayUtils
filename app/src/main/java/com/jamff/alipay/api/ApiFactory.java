@@ -1,7 +1,6 @@
 package com.jamff.alipay.api;
 
 import com.jamff.alipay.Constant;
-import com.jamff.alipay.util.LogUtil;
 import com.jamff.alipay.util.UIUtils;
 
 import java.io.File;
@@ -31,7 +30,7 @@ public class ApiFactory {
 
         int size = 1024 * 1024 * 10;
         File cacheFile = new File(UIUtils.getContext().getCacheDir(), "okHttp");
-        LogUtil.d(Constant.TAG_HTTP, "cacheFile " + cacheFile.getAbsolutePath());
+        // LogUtil.d(Constant.TAG_HTTP, "cacheFile " + cacheFile.getAbsolutePath());
         Cache cache = new Cache(cacheFile, size);
 
         OkHttpClient client = new OkHttpClient.Builder()
