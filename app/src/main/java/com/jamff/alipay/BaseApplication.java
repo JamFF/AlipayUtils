@@ -24,7 +24,7 @@ public class BaseApplication extends Application {
     public void onCreate() {
         super.onCreate();
         UIUtils.init(this, new Handler(), android.os.Process.myTid());
-        CrashHandler.getInstance().init(this);
+        CrashHandler.getInstance().init();
     }
 
     public static LoginResultBean.DataBean getUserInfo() {

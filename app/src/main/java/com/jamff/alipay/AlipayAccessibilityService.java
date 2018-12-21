@@ -13,7 +13,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import com.jamff.alipay.api.ApiFactory;
 import com.jamff.alipay.bean.NotifyParamBean;
 import com.jamff.alipay.bean.NotifyResultBean;
-import com.jamff.alipay.util.GsonUtil;
+import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
 import com.jamff.alipay.util.StringUtils;
 import com.jamff.alipay.util.UIUtils;
@@ -363,7 +363,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
     private void uploadData(final NotifyParamBean bean) {
 
-        String data = GsonUtil.bean2Json(bean);
+        String data = FastJsonUtil.bean2Json(bean);
         LogUtil.d(Constant.TAG_HTTP, "notify data = " + data);
 
         ApiFactory.getInstance().getApiService().notify(data).enqueue(

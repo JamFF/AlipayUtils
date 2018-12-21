@@ -19,6 +19,14 @@ public class EndParamBean {
         this.device_id = device_id;
     }
 
+    public String getMethod() {
+        return method;
+    }
+
+    public String getDevice_id() {
+        return device_id;
+    }
+
     @Override
     public String toString() {
         return "EndParamBean{" +

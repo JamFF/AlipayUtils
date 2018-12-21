@@ -23,7 +23,7 @@ import com.jamff.alipay.bean.EndParamBean;
 import com.jamff.alipay.ui.LoginFragment;
 import com.jamff.alipay.ui.OnFragmentInteractionListener;
 import com.jamff.alipay.ui.TradeFragment;
-import com.jamff.alipay.util.GsonUtil;
+import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
 import com.jamff.alipay.util.ToastUtil;
 import com.jamff.alipay.util.UIUtils;
@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
         showProgressDialog("退出中");
 
-        String data = GsonUtil.bean2Json(new EndParamBean(BaseApplication.getUserInfo().getDevice_id()));
+        String data = FastJsonUtil.bean2Json(new EndParamBean(BaseApplication.getUserInfo().getDevice_id()));
         LogUtil.d(Constant.TAG_HTTP, "exit data = " + data);
 
         ApiFactory.getInstance().getApiService().end(data).enqueue(

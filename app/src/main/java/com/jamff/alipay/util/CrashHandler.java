@@ -1,10 +1,5 @@
 package com.jamff.alipay.util;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
@@ -27,6 +22,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -34,22 +30,18 @@ import java.util.Map;
  * author: JamFF
  * time: 2018/12/14 22:37
  */
-@SuppressLint({"SimpleDateFormat", "SdCardPath"})
 public class CrashHandler implements UncaughtExceptionHandler {
 
-    public static final String TAG = "CrashHandler";
+    private static final String TAG = "CrashHandler";
 
     private UncaughtExceptionHandler mDefaultHandler;
 
     //CrashHandler实例
     private static CrashHandler instance;
 
-    //程序的Context对象
-    private Context mContext;
+    private Map<String, String> mInfo = new HashMap<>();
 
-    private Map<String, String> infos = new HashMap<String, String>();
-
-    private DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+    private DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.CHINA);
 
     private CrashHandler() {
     }
@@ -63,8 +55,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
         return instance;
     }
 
-    public void init(Context context) {
-        mContext = context;
+    public void init() {
 
         mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
 
@@ -91,7 +82,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
             return false;
         }
         //收集设备参数信息
-        collectDeviceInfo(mContext);
+        collectDeviceInfo();
         //write failed: ENOSPC (No space left on device)
         long availableSize = FileHelp.getSDAvailableSize();
         if (availableSize < 1024 * 1024) {
@@ -104,27 +95,15 @@ public class CrashHandler implements UncaughtExceptionHandler {
 
     /**
      * 收集设备参数信息
-     *
-     * @param ctx
      */
-    public void collectDeviceInfo(Context ctx) {
-        try {
-            PackageManager pm = ctx.getPackageManager();
-            PackageInfo pi = pm.getPackageInfo(ctx.getPackageName(), PackageManager.GET_ACTIVITIES);
-            if (pi != null) {
-                String versionName = pi.versionName == null ? "null" : pi.versionName;
-                String versionCode = pi.versionCode + "";
-                infos.put("versionName", versionName);
-                infos.put("versionCode", versionCode);
-            }
-        } catch (NameNotFoundException e) {
-            Log.e(TAG, "an error occured when collect package info", e);
-        }
+    private void collectDeviceInfo() {
+        mInfo.put("versionName", UIUtils.getVersionName());
+        mInfo.put("versionCode", UIUtils.getVersionCode() + "");
         Field[] fields = Build.class.getDeclaredFields();
         for (Field field : fields) {
             try {
                 field.setAccessible(true);
-                infos.put(field.getName(), field.get(null).toString());
+                mInfo.put(field.getName(), field.get(null).toString());
                 Log.d(TAG, field.getName() + " : " + field.get(null));
             } catch (Exception e) {
                 Log.e(TAG, "an error occured when collect crash info", e);
@@ -134,18 +113,15 @@ public class CrashHandler implements UncaughtExceptionHandler {
 
     /**
      * 保存错误信息到文件中
-     *
-     * @param ex
-     * @return
      */
     private String saveCatchInfo2File(Throwable ex) {
 
-        StringBuffer sb = new StringBuffer();
-        for (Map.Entry<String, String> entry : infos.entrySet()) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String> entry : mInfo.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
 
-            sb.append(key + "=" + value + "\n");
+            sb.append(key).append("=").append(value).append("\n");
         }
 
         Writer writer = new StringWriter();
@@ -177,21 +153,10 @@ public class CrashHandler implements UncaughtExceptionHandler {
                 sendCrashLog2PM(path + fileName);
                 fos.close();
             }
-//			ChannelApi.SubmitLog(new File("/mnt/sdcard/HongFan/" + fileName), new JsonHttpResponseHandler()
-//			{
-//				
-//				@Override
-//				public void onSuccess(int statusCode, Header[] headers, JSONObject response)
-//				{
-//					System.err.println("--sendlog--");
-//					super.onSuccess(statusCode, headers, response);
-//				}
-//				
-//			});
             return fileName;
         } catch (Exception e) {
             Log.e(TAG, "an error occured while writing file...", e);
-            //System.exit(0);
+            // System.exit(0);
         }
 
         return null;
@@ -199,12 +164,12 @@ public class CrashHandler implements UncaughtExceptionHandler {
 
     private void sendCrashLog2PM(String fileName) {
         if (!new File(fileName).exists()) {
-            //	Toast.makeText(mContext, "日志文件不存在！", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(mContext, "日志文件不存在！", Toast.LENGTH_SHORT).show();
             return;
         }
         FileInputStream fis = null;
         BufferedReader reader = null;
-        String s = null;
+        String s;
         try {
             fis = new FileInputStream(fileName);
             reader = new BufferedReader(new InputStreamReader(fis, "GBK"));
@@ -213,7 +178,7 @@ public class CrashHandler implements UncaughtExceptionHandler {
                 if (s == null)
                     break;
 
-                Log.i("info", s.toString());
+                Log.i("info", s);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

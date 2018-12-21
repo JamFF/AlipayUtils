@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Handler;
+import android.text.TextUtils;
 
 /**
  * description:
@@ -122,7 +123,11 @@ public class UIUtils {
     public static String getVersionName() {
         try {
             PackageInfo pi = UIUtils.getContext().getPackageManager().getPackageInfo(UIUtils.getContext().getPackageName(), 0);
-            return pi.versionName;
+            if (TextUtils.isEmpty(pi.versionName)) {
+                return "";
+            } else {
+                return pi.versionName;
+            }
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
             return "";

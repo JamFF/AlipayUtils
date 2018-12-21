@@ -18,7 +18,7 @@ import com.jamff.alipay.R;
 import com.jamff.alipay.api.ApiFactory;
 import com.jamff.alipay.bean.LoginParamBean;
 import com.jamff.alipay.bean.LoginResultBean;
-import com.jamff.alipay.util.GsonUtil;
+import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
 import com.jamff.alipay.util.StringUtils;
 import com.jamff.alipay.util.ToastUtil;
@@ -115,7 +115,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
             mListener.showProgressDialog("登录中");
         }
 
-        String data = GsonUtil.bean2Json(bean);
+        String data = FastJsonUtil.bean2Json(bean);
         LogUtil.d(Constant.TAG_HTTP, "login data = " + data);
 
         ApiFactory.getInstance().getApiService().login(data).enqueue(

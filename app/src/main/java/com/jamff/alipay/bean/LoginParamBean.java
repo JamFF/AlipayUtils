@@ -21,6 +21,10 @@ public class LoginParamBean {
         this.password = password;
     }
 
+    public String getMethod() {
+        return method;
+    }
+
     public String getDevice_no() {
         return device_no;
     }

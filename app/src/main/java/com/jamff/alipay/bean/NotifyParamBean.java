@@ -30,6 +30,26 @@ public class NotifyParamBean {
         this.pay_time = System.currentTimeMillis() / 1000;
     }
 
+    public String getMethod() {
+        return method;
+    }
+
+    public String getDevice_id() {
+        return device_id;
+    }
+
+    public String getOrder_sn() {
+        return order_sn;
+    }
+
+    public String getTrade_amount() {
+        return trade_amount;
+    }
+
+    public long getPay_time() {
+        return pay_time;
+    }
+
     public int getCount() {
         return count;
     }
