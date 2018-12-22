@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -13,9 +14,9 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import com.jamff.alipay.api.ApiFactory;
 import com.jamff.alipay.bean.NotifyParamBean;
 import com.jamff.alipay.bean.NotifyResultBean;
+import com.jamff.alipay.util.EncryptUtil;
 import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
-import com.jamff.alipay.util.StringUtils;
 import com.jamff.alipay.util.UIUtils;
 
 import java.util.List;
@@ -281,12 +282,12 @@ public class AlipayAccessibilityService extends AccessibilityService {
                     // 备注
                     String title = tv_title.getText().toString();
 
-                    if (StringUtils.isEmpty(title) || !title.contains(Constant.KEY_ORDER)) {
+                    if (TextUtils.isEmpty(title) || !title.contains(Constant.KEY_ORDER)) {
                         LogUtil.d(Constant.TAG_SERVICE, "title not start with " + Constant.KEY_ORDER);
                         continue;
                     }
 
-                    if (StringUtils.isEmpty(desc)) {
+                    if (TextUtils.isEmpty(desc)) {
                         LogUtil.d(Constant.TAG_SERVICE, "desc is empty");
                         continue;
                     }
@@ -366,6 +367,9 @@ public class AlipayAccessibilityService extends AccessibilityService {
         String data = FastJsonUtil.bean2Json(bean);
         LogUtil.d(Constant.TAG_HTTP, "notify data = " + data);
 
+        String sign = EncryptUtil.getSign(data);
+        LogUtil.i(Constant.TAG_HTTP, "login sign = " + sign);
+
         ApiFactory.getInstance().getApiService().notify(data).enqueue(
                 new Callback<NotifyResultBean>() {
                     @Override
@@ -392,7 +396,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
                         if (resultBean.getErrcode() == Constant.HTTP_OK) {
                             LogUtil.i(Constant.TAG_HTTP, "notify success: ");
                         } else {
-                            if (StringUtils.isEmpty(resultBean.getMsg())) {
+                            if (TextUtils.isEmpty(resultBean.getMsg())) {
                                 LogUtil.i(Constant.TAG_HTTP, "notify onResponse: msg is empty");
                             } else {
                                 LogUtil.i(Constant.TAG_HTTP, "notify onResponse: " + resultBean.getMsg());

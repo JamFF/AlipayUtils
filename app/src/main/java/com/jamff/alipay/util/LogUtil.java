@@ -1,6 +1,5 @@
 package com.jamff.alipay.util;
 
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -9,6 +8,7 @@ import com.jamff.alipay.Constant;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 /**
  * description:
@@ -138,7 +138,7 @@ public class LogUtil {
         }
 
         try {
-            writeFileToSD(Environment.getExternalStorageDirectory().getPath() + Constant.LOG_PATH + "records/", getCurTime() + "_" + msg);
+            writeFileToSD(Constant.LOG_PATH, getCurTime() + "_" + msg);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -150,7 +150,7 @@ public class LogUtil {
     private static String getCurTime() {
         String curTime = "";
         try {
-            SimpleDateFormat formatter = new SimpleDateFormat("yy/MM/dd/ HH:mm:ss");
+            SimpleDateFormat formatter = new SimpleDateFormat("yy/MM/dd/ HH:mm:ss", Locale.CHINA);
             curTime = "[" + formatter.format(System.currentTimeMillis()) + "] ";
         } catch (Exception e) {
             e.printStackTrace();
@@ -188,7 +188,7 @@ public class LogUtil {
     }
 
     private static String CreateSysTimeFileName() {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss", Locale.CHINA);
         Date curDate = new Date(System.currentTimeMillis());//获取当前时间
         return formatter.format(curDate) + ".txt";
     }

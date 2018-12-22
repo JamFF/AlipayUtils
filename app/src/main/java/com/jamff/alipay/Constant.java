@@ -1,5 +1,9 @@
 package com.jamff.alipay;
 
+import android.os.Environment;
+
+import java.io.File;
+
 public interface Constant {
 
     boolean IS_DEBUG = false;
@@ -18,9 +22,21 @@ public interface Constant {
 
     String TAG_PERMISSIONS = "tag_permissions";
 
+    String TAG_INSTALL = "tag_install";
+
     String BASE_URL = "http://inter.arphoto.fun/";
 
-    String LOG_PATH = "/payUtils/";
+    String SD_CARD = Environment.getExternalStorageDirectory().getAbsolutePath();
+
+    String ROOT_PATH = SD_CARD + File.separator + "payUtils";
+
+    String NEW_APK_PATH = ROOT_PATH + File.separator + "apk_new.apk";// 升级apk的目录
+
+    String CRASH_PATH = ROOT_PATH + File.separator + "crash" + File.separator;// crash日志
+
+    String LOG_PATH = ROOT_PATH + File.separator + "log" + File.separator;// log日志
+
+    String MD5_KRY = "&key=pf567";
 
     /**
      * 网络请求成功

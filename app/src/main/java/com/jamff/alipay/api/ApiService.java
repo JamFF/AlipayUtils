@@ -35,4 +35,11 @@ public interface ApiService {
     @FormUrlEncoded
     @POST("fixedv2/api")
     Call<String> end(@Field("data") String data);
+
+    /**
+     * 升级接口
+     */
+    @FormUrlEncoded
+    @POST("fixedv2/api")
+    Call<String> version(@Field("data") String data);
 }

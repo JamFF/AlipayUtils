@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +19,9 @@ import com.jamff.alipay.R;
 import com.jamff.alipay.api.ApiFactory;
 import com.jamff.alipay.bean.LoginParamBean;
 import com.jamff.alipay.bean.LoginResultBean;
+import com.jamff.alipay.util.EncryptUtil;
 import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
-import com.jamff.alipay.util.StringUtils;
 import com.jamff.alipay.util.ToastUtil;
 import com.jamff.alipay.util.UIUtils;
 
@@ -118,6 +119,9 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         String data = FastJsonUtil.bean2Json(bean);
         LogUtil.d(Constant.TAG_HTTP, "login data = " + data);
 
+        String sign = EncryptUtil.getSign(data);
+        LogUtil.i(Constant.TAG_HTTP, "login sign = " + sign);
+
         ApiFactory.getInstance().getApiService().login(data).enqueue(
                 new Callback<LoginResultBean>() {
                     @Override
@@ -150,7 +154,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
                                 mListener.dismissProgressDialog();
                             }
                         } else {
-                            if (StringUtils.isEmpty(resultBean.getMsg())) {
+                            if (TextUtils.isEmpty(resultBean.getMsg())) {
                                 loginFail("登录失败", "login onResponse: msg is empty");
                             } else {
                                 loginFail(resultBean.getMsg(), "login onResponse: " + resultBean.getMsg());
@@ -186,7 +190,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
      */
     private boolean validateAccount(Editable ed) {
 
-        if (ed == null || StringUtils.isEmpty(ed.toString())) {
+        if (ed == null || TextUtils.isEmpty(ed.toString())) {
             til_username.setError("账号不能为空");
             return false;
         }
@@ -200,7 +204,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
      */
     private boolean validatePassword(Editable ed) {
 
-        if (ed == null || StringUtils.isEmpty(ed.toString())) {
+        if (ed == null || TextUtils.isEmpty(ed.toString())) {
             til_password.setError("密码不能为空");
             return false;
         }

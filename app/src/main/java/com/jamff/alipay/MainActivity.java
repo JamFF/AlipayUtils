@@ -20,13 +20,18 @@ import android.widget.FrameLayout;
 
 import com.jamff.alipay.api.ApiFactory;
 import com.jamff.alipay.bean.EndParamBean;
+import com.jamff.alipay.bean.VersionParamBean;
 import com.jamff.alipay.ui.LoginFragment;
 import com.jamff.alipay.ui.OnFragmentInteractionListener;
 import com.jamff.alipay.ui.TradeFragment;
+import com.jamff.alipay.util.APKUtils;
+import com.jamff.alipay.util.EncryptUtil;
 import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
 import com.jamff.alipay.util.ToastUtil;
 import com.jamff.alipay.util.UIUtils;
+
+import java.io.File;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -78,6 +83,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
             return;
         }
         mWakelock.acquire();
+
+        //version();
+        //updateAPP();
     }
 
     @Override
@@ -133,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
 
     private boolean isAccessibilitySettingsOff() {
         int accessibilityEnabled = 0;
-        final String service = getPackageName() + "/" + AlipayAccessibilityService.class.getCanonicalName();
+        final String service = getPackageName() + File.separator + AlipayAccessibilityService.class.getCanonicalName();
         try {
             accessibilityEnabled = Settings.Secure.getInt(
                     UIUtils.getContext().getContentResolver(),
@@ -225,6 +233,9 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         String data = FastJsonUtil.bean2Json(new EndParamBean(BaseApplication.getUserInfo().getDevice_id()));
         LogUtil.d(Constant.TAG_HTTP, "exit data = " + data);
 
+        String sign = EncryptUtil.getSign(data);
+        LogUtil.i(Constant.TAG_HTTP, "login sign = " + sign);
+
         ApiFactory.getInstance().getApiService().end(data).enqueue(
                 new Callback<String>() {
                     @Override
@@ -306,5 +317,43 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 .setTitle("警告！")
                 .setMessage("读写SD卡权限尚未打开，部分功能无法正常运行！")
                 .setPositiveButton("确定", null).show();
+    }
+
+    private void version() {
+        String data = FastJsonUtil.bean2Json(new VersionParamBean());
+        LogUtil.d(Constant.TAG_HTTP, "version data = " + data);
+
+        String sign = EncryptUtil.getSign(data);
+        LogUtil.i(Constant.TAG_HTTP, "version sign = " + sign);
+
+        ApiFactory.getInstance().getApiService().end(sign).enqueue(
+                new Callback<String>() {
+                    @Override
+                    public void onResponse(@NonNull Call<String> call,
+                                           @NonNull Response<String> response) {
+                        LogUtil.d(Constant.TAG_HTTP, "version onResponse: " + response.body());
+                        // TODO: 2018/12/22
+                        // updateAPP();
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<String> call,
+                                          @NonNull Throwable t) {
+                        LogUtil.e(Constant.TAG_HTTP, "version onFailure: " + t);
+                    }
+                });
+    }
+
+    private void updateAPP() {
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("发现新版本")
+                .setNegativeButton("取消", null)
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        APKUtils.installApk(MainActivity.this, Constant.NEW_APK_PATH);
+                    }
+                })
+                .show();
     }
 }

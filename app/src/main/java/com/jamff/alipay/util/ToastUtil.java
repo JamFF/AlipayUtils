@@ -1,6 +1,7 @@
 package com.jamff.alipay.util;
 
 
+import android.text.TextUtils;
 import android.widget.Toast;
 
 /**
@@ -19,19 +20,20 @@ public class ToastUtil {
      */
     public static void showShort(final String info) {
 
-        if (StringUtils.isNotEmpty(info)) {
-            UIUtils.getMainThreadHandler().post(new Runnable() {
-                @Override
-                public void run() {
-                    if (null == mToast) {
-                        mToast = Toast.makeText(UIUtils.getContext(), info, Toast.LENGTH_SHORT);
-                    }
-                    mToast.setDuration(Toast.LENGTH_SHORT);
-                    mToast.setText(info);
-                    mToast.show();
-                }
-            });
+        if (TextUtils.isEmpty(info)) {
+            return;
         }
+        UIUtils.getMainThreadHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                if (null == mToast) {
+                    mToast = Toast.makeText(UIUtils.getContext(), info, Toast.LENGTH_SHORT);
+                }
+                mToast.setDuration(Toast.LENGTH_SHORT);
+                mToast.setText(info);
+                mToast.show();
+            }
+        });
     }
 
     /**
@@ -40,18 +42,20 @@ public class ToastUtil {
      * @param info 需要显示的文字
      */
     public static void showLong(final String info) {
-        if (StringUtils.isNotEmpty(info)) {
-            UIUtils.getMainThreadHandler().post(new Runnable() {
-                @Override
-                public void run() {
-                    if (null == mToast) {
-                        mToast = Toast.makeText(UIUtils.getContext(), info, Toast.LENGTH_SHORT);
-                    }
-                    mToast.setDuration(Toast.LENGTH_LONG);
-                    mToast.setText(info);
-                    mToast.show();
-                }
-            });
+
+        if (TextUtils.isEmpty(info)) {
+            return;
         }
+        UIUtils.getMainThreadHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                if (null == mToast) {
+                    mToast = Toast.makeText(UIUtils.getContext(), info, Toast.LENGTH_SHORT);
+                }
+                mToast.setDuration(Toast.LENGTH_LONG);
+                mToast.setText(info);
+                mToast.show();
+            }
+        });
     }
 }

@@ -4,6 +4,8 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.text.TextUtils;
 
+import com.jamff.alipay.Constant;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,7 +20,7 @@ public class FileHelp {
 
     public static boolean createFolderIfNotExist(String strFolder) {
 
-        File basefile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/rearview");
+        File basefile = new File(Constant.ROOT_PATH);
         if (!basefile.exists()) {
             basefile.mkdir();
         }
@@ -65,8 +67,7 @@ public class FileHelp {
 
     public static long getSDAvailableSize() {
         if (isSdCardMounted()) {
-            File path = Environment.getExternalStorageDirectory();
-            StatFs stat = new StatFs(path.getPath());
+            StatFs stat = new StatFs(Constant.SD_CARD);
             long blockSize = stat.getBlockSize();
             long availableBlocks = stat.getAvailableBlocks();
 
