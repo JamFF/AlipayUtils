@@ -368,9 +368,9 @@ public class AlipayAccessibilityService extends AccessibilityService {
         LogUtil.d(Constant.TAG_HTTP, "notify data = " + data);
 
         String sign = EncryptUtil.getSign(data);
-        LogUtil.i(Constant.TAG_HTTP, "login sign = " + sign);
+        LogUtil.i(Constant.TAG_HTTP, "notify sign = " + sign);
 
-        ApiFactory.getInstance().getApiService().notify(data).enqueue(
+        ApiFactory.getInstance().getApiService().notify(sign).enqueue(
                 new Callback<NotifyResultBean>() {
                     @Override
                     public void onResponse(@NonNull Call<NotifyResultBean> call,

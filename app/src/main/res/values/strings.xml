@@ -7,4 +7,5 @@
     <string name="merchant_no">商户号：</string>
     <string name="start">开始</string>
     <string name="end">停止</string>
+    <string name="version">V%s</string>
 </resources>

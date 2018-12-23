@@ -231,12 +231,12 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         showProgressDialog("退出中");
 
         String data = FastJsonUtil.bean2Json(new EndParamBean(BaseApplication.getUserInfo().getDevice_id()));
-        LogUtil.d(Constant.TAG_HTTP, "exit data = " + data);
+        LogUtil.d(Constant.TAG_HTTP, "end data = " + data);
 
         String sign = EncryptUtil.getSign(data);
-        LogUtil.i(Constant.TAG_HTTP, "login sign = " + sign);
+        LogUtil.i(Constant.TAG_HTTP, "end sign = " + sign);
 
-        ApiFactory.getInstance().getApiService().end(data).enqueue(
+        ApiFactory.getInstance().getApiService().end(sign).enqueue(
                 new Callback<String>() {
                     @Override
                     public void onResponse(@NonNull Call<String> call,
@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         String sign = EncryptUtil.getSign(data);
         LogUtil.i(Constant.TAG_HTTP, "version sign = " + sign);
 
-        ApiFactory.getInstance().getApiService().end(sign).enqueue(
+        ApiFactory.getInstance().getApiService().version(sign).enqueue(
                 new Callback<String>() {
                     @Override
                     public void onResponse(@NonNull Call<String> call,

@@ -72,7 +72,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         et_password = til_password.getEditText();
 
         TextView tv_version = view.findViewById(R.id.tv_version);
-        tv_version.setText(UIUtils.getVersionName());
+        tv_version.setText(String.format(UIUtils.getString(R.string.version), UIUtils.getVersionName()));
 
         view.findViewById(R.id.bt_login).setOnClickListener(this);
 
@@ -122,7 +122,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
         String sign = EncryptUtil.getSign(data);
         LogUtil.i(Constant.TAG_HTTP, "login sign = " + sign);
 
-        ApiFactory.getInstance().getApiService().login(data).enqueue(
+        ApiFactory.getInstance().getApiService().login(sign).enqueue(
                 new Callback<LoginResultBean>() {
                     @Override
                     public void onResponse(@NonNull Call<LoginResultBean> call,

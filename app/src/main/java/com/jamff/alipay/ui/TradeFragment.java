@@ -42,7 +42,7 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
         tv_merchant_no.setText(BaseApplication.getUserInfo().getMerchant_no());
 
         TextView tv_version = view.findViewById(R.id.tv_version);
-        tv_version.setText(UIUtils.getVersionName());
+        tv_version.setText(String.format(UIUtils.getString(R.string.version), UIUtils.getVersionName()));
 
         view.findViewById(R.id.bt_start).setOnClickListener(this);
 
