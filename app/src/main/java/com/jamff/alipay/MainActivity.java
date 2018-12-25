@@ -24,15 +24,16 @@ import com.jamff.alipay.bean.VersionParamBean;
 import com.jamff.alipay.ui.LoginFragment;
 import com.jamff.alipay.ui.OnFragmentInteractionListener;
 import com.jamff.alipay.ui.TradeFragment;
-import com.jamff.alipay.util.APKUtils;
 import com.jamff.alipay.util.EncryptUtil;
 import com.jamff.alipay.util.FastJsonUtil;
+import com.jamff.alipay.util.FileHelp;
 import com.jamff.alipay.util.LogUtil;
 import com.jamff.alipay.util.ToastUtil;
 import com.jamff.alipay.util.UIUtils;
 
 import java.io.File;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -84,8 +85,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         }
         mWakelock.acquire();
 
-        //version();
-        //updateAPP();
+        // checkVersion();
     }
 
     @Override
@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 .setPositiveButton("确定", null).show();
     }
 
-    private void version() {
+    private void checkVersion() {
         String data = FastJsonUtil.bean2Json(new VersionParamBean());
         LogUtil.d(Constant.TAG_HTTP, "version data = " + data);
 
@@ -332,8 +332,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                     public void onResponse(@NonNull Call<String> call,
                                            @NonNull Response<String> response) {
                         LogUtil.d(Constant.TAG_HTTP, "version onResponse: " + response.body());
-                        // TODO: 2018/12/22
-                        // updateAPP();
+                        // TODO: 2018/12/22 获取更新url
+                        updateAPP("");
                     }
 
                     @Override
@@ -344,16 +344,38 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
                 });
     }
 
-    private void updateAPP() {
+    private void updateAPP(final String url) {
         new AlertDialog.Builder(MainActivity.this)
                 .setTitle("发现新版本")
                 .setNegativeButton("取消", null)
                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        APKUtils.installApk(MainActivity.this, Constant.NEW_APK_PATH);
+                        // 下载前先删除之前的文件
+                        FileHelp.deleteFile(Constant.NEW_APK_PATH);
+                        downloadApp(url);
                     }
                 })
                 .show();
+    }
+
+    private void downloadApp(String url) {
+
+        ApiFactory.getInstance().getApiService().downloadApp(url).enqueue(
+                new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ResponseBody> call,
+                                           @NonNull Response<ResponseBody> response) {
+                        LogUtil.d(Constant.TAG_HTTP, "downloadApp onResponse: ");
+                        // TODO: 2018/12/24 保存文件流
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<ResponseBody> call,
+                                          @NonNull Throwable t) {
+                        LogUtil.e(Constant.TAG_HTTP, "downloadApp onFailure: " + t);
+                        ToastUtil.showShort("下载失败，网路异常");
+                    }
+                });
     }
 }

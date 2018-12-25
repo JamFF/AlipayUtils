@@ -168,7 +168,10 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
                     @Override
                     public void onFailure(@NonNull Call<LoginResultBean> call,
                                           @NonNull Throwable t) {
-                        LogUtil.e(Constant.TAG_HTTP, "login onFailure: " + t);
+                        loginFail("登录失败，网络异常", "login onFailure: " + t);
+                        if (mListener != null) {
+                            mListener.dismissProgressDialog();
+                        }
                     }
                 });
 

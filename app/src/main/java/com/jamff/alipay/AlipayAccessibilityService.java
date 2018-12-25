@@ -335,19 +335,18 @@ public class AlipayAccessibilityService extends AccessibilityService {
             }
 
             String amount_temp = view.getChild(1).getContentDescription().toString();
-            String order_temp = view.getChild(6).getContentDescription().toString();
+            String order_sn = view.getChild(6).getContentDescription().toString();
 
-            if (!order_temp.contains(Constant.KEY_ORDER)) {
+            // 不使用过滤规则
+            /*if (!order_temp.contains(Constant.KEY_ORDER)) {
                 // 非有效订单
                 return;
-            }
+            }*/
 
             if (!amount_temp.startsWith("+")) {
                 // 非有效订单
                 return;
             }
-
-            String order_sn = order_temp.replaceAll("=", "");// 去除"="
 
             String trade_amount = amount_temp.substring(1, amount_temp.length())// 去除"+"
                     .replace(".", "")// 换算为分
