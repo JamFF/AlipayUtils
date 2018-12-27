@@ -350,6 +350,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
             String trade_amount = amount_temp.substring(1, amount_temp.length())// 去除"+"
                     .replace(".", "")// 换算为分
+                    .replace(",", "")// 去掉分隔符
                     .replaceFirst("^0*", "");// 去除头部"0"
 
             uploadData(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(), order_sn, trade_amount));
