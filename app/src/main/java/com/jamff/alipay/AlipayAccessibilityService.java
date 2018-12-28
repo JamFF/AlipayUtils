@@ -68,6 +68,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
                 LogUtil.i(Constant.TAG_SERVICE, "Notification bar changes");
                 List<CharSequence> texts = event.getText();
                 if (!texts.isEmpty()) {
+                    LogUtil.d(Constant.TAG_SERVICE, "texts is no empty");
                     for (CharSequence text : texts) {
                         String content = text.toString();
                         LogUtil.i(Constant.TAG_SERVICE, content);
@@ -79,6 +80,8 @@ public class AlipayAccessibilityService extends AccessibilityService {
                             break;
                         }
                     }
+                } else {
+                    LogUtil.e(Constant.TAG_SERVICE, "texts is empty");
                 }
                 break;
 
@@ -335,7 +338,15 @@ public class AlipayAccessibilityService extends AccessibilityService {
             }
 
             String amount_temp = view.getChild(1).getContentDescription().toString();
-            String order_sn = view.getChild(6).getContentDescription().toString();
+
+            if (!amount_temp.startsWith("+")) {
+                // 非有效订单
+                LogUtil.w(Constant.TAG_SERVICE, "not startsWith +");
+                return;
+            }
+
+            // 收款理由
+            String order_temp = view.getChild(6).getContentDescription().toString();
 
             // 不使用过滤规则
             /*if (!order_temp.contains(Constant.KEY_ORDER)) {
@@ -343,9 +354,26 @@ public class AlipayAccessibilityService extends AccessibilityService {
                 return;
             }*/
 
-            if (!amount_temp.startsWith("+")) {
-                // 非有效订单
-                return;
+            String order_sn;
+            if (order_temp.contains(Constant.KEY_RECEIPT)) {
+                LogUtil.i(Constant.TAG_SERVICE, order_temp);
+                // 收款理由是"转账"时取转账备注
+                if (view.getChild(7) == null || view.getChild(8) == null) {
+                    // 找不到WebView子节点、找不到关键数据，重新找
+                    findTradeInfoDelayed();
+                    return;
+                }
+                String remark = view.getChild(7).getContentDescription().toString();
+                if (remark.contains(Constant.KEY_REMARK)) {
+                    order_sn = view.getChild(8).getContentDescription().toString();
+                    LogUtil.i(Constant.TAG_SERVICE, "remark order_sn: " + order_sn);
+                } else {
+                    LogUtil.w(Constant.TAG_SERVICE, "not find reason, not find remark");
+                    return;
+                }
+            } else {
+                order_sn = order_temp;
+                LogUtil.i(Constant.TAG_SERVICE, "reason order_sn: " + order_sn);
             }
 
             String trade_amount = amount_temp.substring(1, amount_temp.length())// 去除"+"
