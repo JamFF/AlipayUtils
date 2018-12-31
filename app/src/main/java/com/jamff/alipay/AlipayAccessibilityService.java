@@ -17,6 +17,7 @@ import com.jamff.alipay.bean.NotifyResultBean;
 import com.jamff.alipay.util.EncryptUtil;
 import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
+import com.jamff.alipay.util.StringUtils;
 import com.jamff.alipay.util.UIUtils;
 
 import java.util.List;
@@ -356,7 +357,8 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
             String order_sn;
             if (order_temp.contains(Constant.KEY_RECEIPT)) {
-                LogUtil.i(Constant.TAG_SERVICE, order_temp);
+                // 适配收款理由是收款的情况
+                LogUtil.d(Constant.TAG_SERVICE, order_temp);
                 // 收款理由是"转账"时取转账备注
                 if (view.getChild(7) == null || view.getChild(8) == null) {
                     // 找不到WebView子节点、找不到关键数据，重新找
@@ -366,14 +368,14 @@ public class AlipayAccessibilityService extends AccessibilityService {
                 String remark = view.getChild(7).getContentDescription().toString();
                 if (remark.contains(Constant.KEY_REMARK)) {
                     order_sn = view.getChild(8).getContentDescription().toString();
-                    LogUtil.i(Constant.TAG_SERVICE, "remark order_sn: " + order_sn);
+                    LogUtil.d(Constant.TAG_SERVICE, "remark order_sn: " + order_sn);
                 } else {
                     LogUtil.w(Constant.TAG_SERVICE, "not find reason, not find remark");
                     return;
                 }
             } else {
                 order_sn = order_temp;
-                LogUtil.i(Constant.TAG_SERVICE, "reason order_sn: " + order_sn);
+                LogUtil.d(Constant.TAG_SERVICE, "reason order_sn: " + order_sn);
             }
 
             String trade_amount = amount_temp.substring(1, amount_temp.length())// 去除"+"
@@ -381,7 +383,12 @@ public class AlipayAccessibilityService extends AccessibilityService {
                     .replace(",", "")// 去掉分隔符
                     .replaceFirst("^0*", "");// 去除头部"0"
 
-            uploadData(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(), order_sn, trade_amount));
+            String order_sn_unicode = StringUtils.string2Unicode(order_sn, true);
+
+            LogUtil.d(Constant.TAG_SERVICE, "order_sn_unicode: " + order_sn_unicode);
+
+            uploadData(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(),
+                    order_sn_unicode, trade_amount));
         } catch (Exception e) {
             // WebView第一次加载时找不到，会空指针异常
             LogUtil.e(Constant.TAG_SERVICE, "findTradeInfo: Exception = " + e, e);
@@ -392,13 +399,10 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
     private void uploadData(final NotifyParamBean bean) {
 
-        String data = FastJsonUtil.bean2Json(bean);
-        LogUtil.d(Constant.TAG_HTTP, "notify data = " + data);
+        String data_sign = EncryptUtil.getSign(FastJsonUtil.bean2Json(bean));
+        LogUtil.i(Constant.TAG_HTTP, "notify sign = " + data_sign);
 
-        String sign = EncryptUtil.getSign(data);
-        LogUtil.i(Constant.TAG_HTTP, "notify sign = " + sign);
-
-        ApiFactory.getInstance().getApiService().notify(sign).enqueue(
+        ApiFactory.getInstance().getApiService().notify(data_sign).enqueue(
                 new Callback<NotifyResultBean>() {
                     @Override
                     public void onResponse(@NonNull Call<NotifyResultBean> call,
