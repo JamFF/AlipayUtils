@@ -6,8 +6,8 @@ android {
         applicationId "com.jamff.alipay"
         minSdkVersion 18
         targetSdkVersion 27
-        versionCode 7
-        versionName "0.0.7"
+        versionCode 10
+        versionName "0.0.10bate"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

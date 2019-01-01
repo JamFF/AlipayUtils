@@ -6,9 +6,11 @@ import java.io.File;
 
 public interface Constant {
 
-    boolean IS_DEBUG = false;
+    boolean IS_DEBUG = false;// log日志开关
 
-    boolean IS_WRITE_FILE = false;
+    boolean IS_WRITE_FILE = false;// log写文件开关
+
+    boolean IS_NEW = true;// 账单批量抓单方式
 
     String TAG_ACTIVITY = "tag_activity";
 
@@ -62,6 +64,16 @@ public interface Constant {
     String KEY_ORDER = "9850";
 
     /**
+     * 收款理由关键字
+     */
+    String KEY_RECEIPT = "收款";
+
+    /**
+     * 转账备注关键字
+     */
+    String KEY_REMARK = "备注";
+
+    /**
      * 支付宝包名
      */
     String ALIPAY_PACKAGE_NAME = "com.eg.android.AlipayGphone";
@@ -97,6 +109,16 @@ public interface Constant {
     String PAY_ACTIVITY = "com.alipay.mobile.nebulacore.ui.H5Activity";
 
     /**
+     * 支付宝主界面
+     */
+    String ALIPAY_MAIN = "com.eg.android.AlipayGphone.AlipayLogin";
+
+    /**
+     * 账单主页面
+     */
+    String BILL_ACTIVITY = "com.alipay.mobile.bill.list.ui.BillMainListActivity";
+
+    /**
      * 账单详细界面 WebView的父布局的id
      */
     String PAY_ROOT_ID = "com.alipay.mobile.nebula:id/h5_pc_container";
@@ -105,4 +127,39 @@ public interface Constant {
      * 账单详细界面 返回键TextView的id
      */
     String PAY_BACK_ID = "com.alipay.mobile.nebula:id/h5_tv_nav_back";
+
+    /**
+     * 底部"我的"RelativeLayout的id，在小米、vivo上不能找到
+     */
+    String HOME_ID = "com.alipay.android.phone.wealth.home:id/sigle_tab_bg";
+
+    /**
+     * 底部TabWidget的id
+     */
+    String TAB_ID = "android:id/tabs";
+
+    /**
+     * 账单父布局LinearLayout的id
+     */
+    String BILL_PARENT_ID = "com.alipay.android.phone.wealth.home:id/widget_container";
+
+    /**
+     * 底部TabWidget上面FrameLayout的id
+     */
+    String TAB_CONTENT_ID = "android:id/tabcontent";
+
+    /**
+     * 账单ListView中订单TextView的id
+     */
+    String BILL_NAME_ID = "com.alipay.mobile.bill.list:id/billName";
+
+    /**
+     * 账单ListView中金额TextView的id
+     */
+    String BILL_AMOUNT_ID = "com.alipay.mobile.bill.list:id/billAmount";
+
+    /**
+     * 账单ListView中金额TextView的id
+     */
+    String BILL_BACK_ID = "com.alipay.mobile.antui:id/back_button";
 }

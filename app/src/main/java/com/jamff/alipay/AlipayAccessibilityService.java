@@ -12,6 +12,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.jamff.alipay.api.ApiFactory;
+import com.jamff.alipay.bean.BillBean;
 import com.jamff.alipay.bean.NotifyParamBean;
 import com.jamff.alipay.bean.NotifyResultBean;
 import com.jamff.alipay.util.EncryptUtil;
@@ -20,6 +21,7 @@ import com.jamff.alipay.util.LogUtil;
 import com.jamff.alipay.util.StringUtils;
 import com.jamff.alipay.util.UIUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -36,9 +38,11 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
     private final List<NotifyParamBean> mFailureBeans = new CopyOnWriteArrayList<>();
 
-    private boolean isNotification;// 收到转账通知后进入聊天界面
+    private boolean isNotification;// 收到转账通知后进入聊天界面，老的方式
 
     private AccessibilityNodeInfo webInfo;
+
+    private boolean untreatedOrder;// 是否存在未处理的订单，新的方式
 
     @Override
     protected void onServiceConnected() {
@@ -74,11 +78,43 @@ public class AlipayAccessibilityService extends AccessibilityService {
                         String content = text.toString();
                         LogUtil.i(Constant.TAG_SERVICE, content);
                         if (content.contains(Constant.KEY_NOTIFICATION)) {
-                            // 关闭上次账单详情界面，不关闭也无所谓
-                            clickViewById(Constant.PAY_BACK_ID);
-                            // 模拟点击通知栏消息，打开支付宝
-                            startNotification(event);
-                            break;
+                            if (Constant.IS_NEW) {// 新的抓单方式
+                                AccessibilityNodeInfo contentNode = findViewById(getRootInActiveWindow(), Constant.TAB_CONTENT_ID, 0);
+
+                                if (contentNode == null) {
+                                    LogUtil.w(Constant.TAG_SERVICE, "contentNode == null");
+                                    untreatedOrder = true;
+                                    LogUtil.d(Constant.TAG_SERVICE, "untreated set true");
+                                    return;
+                                }
+
+                                try {
+                                    // 适配小米、vivo在跟布局不能找到
+                                    AccessibilityNodeInfo parent_info = findViewById(contentNode.getChild(2).getChild(3),
+                                            Constant.BILL_PARENT_ID, 1);
+                                    if (parent_info == null) {
+                                        // 没在"我的"界面，找不到账单
+                                        LogUtil.w(Constant.TAG_SERVICE, "parent_info == null");
+                                        untreatedOrder = true;
+                                        LogUtil.d(Constant.TAG_SERVICE, "untreated set true");
+                                    } else {
+                                        // 进入账单界面
+                                        clickView(parent_info.getChild(0));
+                                    }
+                                } catch (Exception e) {
+                                    LogUtil.e(Constant.TAG_SERVICE, "find bill Exception" + e);
+                                    untreatedOrder = true;
+                                    LogUtil.d(Constant.TAG_SERVICE, "untreated set true");
+                                    e.printStackTrace();
+                                }
+
+                            } else {// 老的抓单方式
+                                // 关闭上次账单详情界面，不关闭也无所谓
+                                clickViewById(Constant.PAY_BACK_ID);
+                                // 模拟点击通知栏消息，打开支付宝
+                                startNotification(event);
+                                break;
+                            }
                         }
                     }
                 } else {
@@ -88,17 +124,20 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
             // 当窗口的状态发生改变时
             case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
-                String className = event.getClassName().toString();
+                final String className = event.getClassName().toString();
                 LogUtil.d(Constant.TAG_SERVICE, "className = " + className);
-                if (Constant.PAY_ACTIVITY.equals(className)) {
-                    if (isNotification) {
-                        // 打开账单详细界面
-                        isNotification = false;
-                        findTradeInfoDelayed();
-                    } else {
-                        LogUtil.w(Constant.TAG_SERVICE, "isNotification = false");
+
+                UIUtils.postDelayedTaskSafely(new Runnable() {
+                    @Override
+                    public void run() {
+                        // 界面变化后统一延迟1秒，给支付宝网络请求的时间
+                        if (Constant.IS_NEW) {
+                            batchMode(className);
+                        } else {
+                            singleMode(className);
+                        }
                     }
-                }
+                }, 1000);
 
                 /*if (isNotification && Constant.CHAT_ACTIVITY.equals(className)) {
                     isNotification = false;
@@ -116,6 +155,193 @@ public class AlipayAccessibilityService extends AccessibilityService {
         LogUtil.d(Constant.TAG_SERVICE, "onInterrupt: ");
     }
 
+    /**
+     * 新的抓单方式
+     */
+    private void batchMode(String className) {
+        if (Constant.ALIPAY_MAIN.equals(className)) {
+            // 进入支付宝，就打开"我的"界面
+            if (clickMineView()) {
+                LogUtil.d(Constant.TAG_SERVICE, "click mine success");
+            } else {
+                LogUtil.w(Constant.TAG_SERVICE, "click mine failure");
+                // 支付宝欢迎页也是AlipayLogin，延迟再获取
+                UIUtils.postDelayedTaskSafely(new Runnable() {
+                    @Override
+                    public void run() {
+                        LogUtil.w(Constant.TAG_SERVICE, clickMineView() ?
+                                "delay click success" : "delay click failure");
+                    }
+                }, 1000);
+            }
+
+            // 回到"我的"界面，检测是否有未处理的订单
+            LogUtil.d(Constant.TAG_SERVICE, "untreated = " + untreatedOrder);
+
+            if (untreatedOrder) {
+                // 有未处理订单
+                AccessibilityNodeInfo contentNode = findViewById(getRootInActiveWindow(), Constant.TAB_CONTENT_ID, 0);
+
+                if (contentNode == null) {
+                    LogUtil.w(Constant.TAG_SERVICE, "contentNode == null");
+                    return;
+                }
+
+                try {
+                    AccessibilityNodeInfo parent_info = findViewById(contentNode.getChild(2).getChild(3),
+                            Constant.BILL_PARENT_ID, 1);
+                    if (parent_info == null) {
+                        LogUtil.e(Constant.TAG_SERVICE, "parent_info == null");
+                    } else {
+                        untreatedOrder = false;
+                        LogUtil.d(Constant.TAG_SERVICE, "untreated set false");
+                        // 进入账单界面
+                        if (clickView(parent_info.getChild(0))) {
+                            LogUtil.d(Constant.TAG_SERVICE, "click bill success");
+                        } else {
+                            LogUtil.d(Constant.TAG_SERVICE, "click bill failure");
+                        }
+                    }
+                } catch (Exception e) {
+                    LogUtil.e(Constant.TAG_SERVICE, "find bill Exception" + e);
+                    e.printStackTrace();
+                }
+            }
+        } else if (Constant.BILL_ACTIVITY.equals(className)) {
+            // 账单列表界面
+            findBillDelayed();
+        }
+    }
+
+    /**
+     * 点击"我的"，适配小米、vivo在跟布局不能找到
+     */
+    private boolean clickMineView() {
+        AccessibilityNodeInfo tabNode = findViewById(getRootInActiveWindow(), Constant.TAB_ID, 0);
+        if (tabNode == null) {
+            return false;
+        }
+        return clickView(tabNode.getChild(4));
+    }
+
+    /**
+     * 延迟1秒后，再抓取最近账单
+     */
+    private void findBillDelayed() {
+        UIUtils.postDelayedTaskSafely(new Runnable() {
+            @Override
+            public void run() {
+                findBillList();
+            }
+        }, 1000);
+    }
+
+    int findBillCount = 0;
+
+    private void findBillList() {
+
+        List<AccessibilityNodeInfo> billNames = findViewsById(getRootInActiveWindow(),
+                Constant.BILL_NAME_ID);
+        List<AccessibilityNodeInfo> billAmounts = findViewsById(getRootInActiveWindow(),
+                Constant.BILL_AMOUNT_ID);
+
+        if (billNames == null || billAmounts == null) {
+            LogUtil.e(Constant.TAG_SERVICE, "billNames == null || billAmounts == null");
+
+            if (findBillCount < 5) {
+                findBillCount++;
+                findBillDelayed();// 重新获取账单
+            } else {
+                findBillCount = 0;
+            }
+            backBillList();
+            return;
+        }
+
+        int i = Math.min(billNames.size(), billAmounts.size());
+
+        LogUtil.d(Constant.TAG_SERVICE, "i = " + i);
+
+        // 封装需要订单集合
+        List<BillBean> billBeans = new ArrayList<>();
+        for (int j = 0; j < i; j++) {
+            billBeans.add(new BillBean(billNames.get(j).getText().toString(),
+                    billAmounts.get(j).getText().toString()));
+        }
+
+        uploadData(billBeans);
+    }
+
+    /**
+     * 上传数据
+     */
+    private void uploadData(@NonNull List<BillBean> billBeans) {
+
+        if (billBeans.isEmpty()) {
+            LogUtil.w(Constant.TAG_SERVICE, "billBeans is empty");
+            backBillList();
+            return;
+        }
+
+        for (BillBean bean : billBeans) {
+            String billAmount = bean.getBillAmount();
+            if (!billAmount.startsWith("+")) {
+                // 非有效订单
+                LogUtil.w(Constant.TAG_SERVICE, "not startsWith +");
+                continue;
+            }
+
+            String billName = bean.getBillName();
+            // 收款理由
+            String order_sn = billName.substring(0, billName.lastIndexOf("-"));
+
+            String trade_amount = billAmount.substring(1, billAmount.length())// 去除"+"
+                    .replace(".", "")// 换算为分
+                    .replace(",", "")// 去掉分隔符
+                    .replaceFirst("^0*", "");// 去除头部"0"
+
+            // TODO: 2018/12/31 unicode
+            /*String order_sn_unicode = StringUtils.string2Unicode(order_sn, true);
+
+            LogUtil.d(Constant.TAG_SERVICE, "order_sn_unicode: " + order_sn_unicode);*/
+
+            notifyData(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(),
+                    order_sn, trade_amount));
+        }
+
+        // 退出账单列表
+        UIUtils.postDelayedTaskSafely(new Runnable() {
+            @Override
+            public void run() {
+                backBillList();
+            }
+        }, 1000);
+
+    }
+
+    /**
+     * 退出账单列表
+     */
+    private void backBillList() {
+        LogUtil.d(Constant.TAG_SERVICE, "backBillList");
+        clickViewById(Constant.BILL_BACK_ID);
+    }
+
+    /**
+     * 老的抓单方式
+     */
+    private void singleMode(String className) {
+        if (Constant.PAY_ACTIVITY.equals(className)) {
+            if (isNotification) {
+                // 打开账单详细界面
+                isNotification = false;
+                findTradeInfo(findViewById(getRootInActiveWindow(), Constant.PAY_ROOT_ID, 0));
+            } else {
+                LogUtil.w(Constant.TAG_SERVICE, "isNotification = false");
+            }
+        }
+    }
+
     private void startTimeTask() {
         UIUtils.postTaskSafely(new Runnable() {
             @Override
@@ -123,7 +349,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
                 if (!mFailureBeans.isEmpty()) {
                     for (NotifyParamBean bean : mFailureBeans) {
-                        uploadData(bean);
+                        notifyData(bean);
                     }
                 }
 
@@ -141,7 +367,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
             public void run() {
 
                 // WebView需要耗时
-                findTradeInfo(findViewById(getRootInActiveWindow(), Constant.PAY_ROOT_ID));
+                findTradeInfo(findViewById(getRootInActiveWindow(), Constant.PAY_ROOT_ID, 0));
             }
         }, 1000);
     }
@@ -166,11 +392,32 @@ public class AlipayAccessibilityService extends AccessibilityService {
     }
 
     /**
+     * 在指定节点，根据id找到控件集合
+     *
+     * @param rootNode 父布局
+     */
+    private List<AccessibilityNodeInfo> findViewsById(AccessibilityNodeInfo rootNode, String id) {
+
+        if (rootNode == null) {
+            LogUtil.e(Constant.TAG_SERVICE, "findViewsById: rootNode is null");
+            return null;
+        }
+
+        List<AccessibilityNodeInfo> list = rootNode.findAccessibilityNodeInfosByViewId(id);
+        if (list != null && !list.isEmpty()) {
+            return list;
+        }
+
+        LogUtil.e(Constant.TAG_SERVICE, "findViewsById: Did not find id = " + id);
+        return null;
+    }
+
+    /**
      * 在指定节点，根据id找到控件
      *
      * @param rootNode 父布局
      */
-    private AccessibilityNodeInfo findViewById(AccessibilityNodeInfo rootNode, String id) {
+    private AccessibilityNodeInfo findViewById(AccessibilityNodeInfo rootNode, String id, int i) {
 
         if (rootNode == null) {
             LogUtil.e(Constant.TAG_SERVICE, "findViewById: rootNode is null");
@@ -179,7 +426,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
         List<AccessibilityNodeInfo> list = rootNode.findAccessibilityNodeInfosByViewId(id);
         if (list != null && !list.isEmpty()) {
-            return list.get(0);
+            return list.get(i < list.size() ? i : 0);
         }
 
         LogUtil.e(Constant.TAG_SERVICE, "findViewById: Did not find id = " + id);
@@ -227,15 +474,29 @@ public class AlipayAccessibilityService extends AccessibilityService {
     }
 
     /**
-     * 点击某个id控件
+     * 根据id点击控件
      */
-    private void clickViewById(String back_id) {
+    private boolean clickViewById(String id) {
 
-        AccessibilityNodeInfo bt_back = findViewById(getRootInActiveWindow(), back_id);
+        AccessibilityNodeInfo bt = findViewById(getRootInActiveWindow(), id, 0);
 
-        if (bt_back != null) {
-            bt_back.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        if (bt != null) {
+            return bt.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         }
+
+        return false;
+    }
+
+    /**
+     * 根据AccessibilityNodeInfo点击控件
+     */
+    private boolean clickView(AccessibilityNodeInfo info) {
+
+        if (info != null) {
+            return info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
+        LogUtil.e(Constant.TAG_SERVICE, "info is null");
+        return false;
     }
 
     /**
@@ -247,7 +508,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
         findTradeInfoByChat(findViewById(getRootInActiveWindow(), Constant.CHAT_LIST_ID));
 
         if (!mParamBeans.isEmpty()) {
-            uploadData(mParamBeans.get(mParamBeans.size() - 1));
+            notifyData(mParamBeans.get(mParamBeans.size() - 1));
         }
     }*/
 
@@ -300,7 +561,8 @@ public class AlipayAccessibilityService extends AccessibilityService {
                             .replace(".", "")// 换算为分
                             .replaceFirst("^0*", "");// 去除头部"0"
 
-                    mParamBeans.add(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(), "9850181213213015459", trade_amount));
+                    mParamBeans.add(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(),
+                            "9850181213213015459", trade_amount));
                 }
             }
         }
@@ -387,7 +649,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
             LogUtil.d(Constant.TAG_SERVICE, "order_sn_unicode: " + order_sn_unicode);
 
-            uploadData(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(),
+            notifyData(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(),
                     order_sn_unicode, trade_amount));
         } catch (Exception e) {
             // WebView第一次加载时找不到，会空指针异常
@@ -397,10 +659,10 @@ public class AlipayAccessibilityService extends AccessibilityService {
         }
     }
 
-    private void uploadData(final NotifyParamBean bean) {
+    private void notifyData(final NotifyParamBean bean) {
 
         String data_sign = EncryptUtil.getSign(FastJsonUtil.bean2Json(bean));
-        LogUtil.i(Constant.TAG_HTTP, "notify sign = " + data_sign);
+        LogUtil.i(Constant.TAG_HTTP, "notifyData sign = " + data_sign);
 
         ApiFactory.getInstance().getApiService().notify(data_sign).enqueue(
                 new Callback<NotifyResultBean>() {
@@ -408,10 +670,10 @@ public class AlipayAccessibilityService extends AccessibilityService {
                     public void onResponse(@NonNull Call<NotifyResultBean> call,
                                            @NonNull Response<NotifyResultBean> response) {
                         NotifyResultBean resultBean = response.body();
-                        LogUtil.i(Constant.TAG_HTTP, "notify onResponse: " + resultBean);
+                        LogUtil.i(Constant.TAG_HTTP, "notifyData onResponse: " + resultBean);
 
                         if (resultBean == null) {
-                            LogUtil.e(Constant.TAG_HTTP, "notify onResponse: NotifyResultBean is null");
+                            LogUtil.e(Constant.TAG_HTTP, "notifyData onResponse: NotifyResultBean is null");
                             if (bean.getCount() == 0) {
                                 bean.setCount(bean.getCount() + 1);
                                 // 添加到错误队列
@@ -426,12 +688,12 @@ public class AlipayAccessibilityService extends AccessibilityService {
                         }
 
                         if (resultBean.getErrcode() == Constant.HTTP_OK) {
-                            LogUtil.i(Constant.TAG_HTTP, "notify success: ");
+                            LogUtil.i(Constant.TAG_HTTP, "notifyData success: ");
                         } else {
                             if (TextUtils.isEmpty(resultBean.getMsg())) {
-                                LogUtil.i(Constant.TAG_HTTP, "notify onResponse: msg is empty");
+                                LogUtil.i(Constant.TAG_HTTP, "notifyData onResponse: msg is empty");
                             } else {
-                                LogUtil.i(Constant.TAG_HTTP, "notify onResponse: " + resultBean.getMsg());
+                                LogUtil.i(Constant.TAG_HTTP, "notifyData onResponse: " + resultBean.getMsg());
                             }
 
                             // 用重复订单进行测试重试
@@ -455,7 +717,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
                     @Override
                     public void onFailure(@NonNull Call<NotifyResultBean> call, @NonNull Throwable t) {
-                        LogUtil.e(Constant.TAG_HTTP, "uploadData onFailure: " + t);
+                        LogUtil.e(Constant.TAG_HTTP, "notifyData onFailure: " + t);
                         if (bean.getCount() == 0) {
                             bean.setCount(bean.getCount() + 1);
                             // 添加到错误队列
