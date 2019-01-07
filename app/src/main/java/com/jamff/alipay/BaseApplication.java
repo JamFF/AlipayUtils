@@ -5,6 +5,8 @@ import android.os.Handler;
 
 import com.jamff.alipay.bean.LoginResultBean;
 import com.jamff.alipay.util.CrashHandler;
+import com.jamff.alipay.util.LogUtil;
+import com.jamff.alipay.util.SPUtils;
 import com.jamff.alipay.util.UIUtils;
 
 /**
@@ -17,14 +19,13 @@ public class BaseApplication extends Application {
     // 保存用户登录返回的信息
     private static LoginResultBean.DataBean userInfo;
 
-    // AccessibilityService是否监听
-    private static boolean start = false;
-
     @Override
     public void onCreate() {
         super.onCreate();
         UIUtils.init(this, new Handler(), android.os.Process.myTid());
-        CrashHandler.getInstance().init();
+        LogUtil.d(Constant.TAG_ACTIVITY, "versionName = " + UIUtils.getVersionName());
+        CrashHandler.INSTANCE.init();
+        SPUtils.INSTANCE.init();
     }
 
     public static LoginResultBean.DataBean getUserInfo() {
@@ -33,13 +34,5 @@ public class BaseApplication extends Application {
 
     public static void setUserInfo(LoginResultBean.DataBean dataBean) {
         userInfo = dataBean;
-    }
-
-    public static boolean isStart() {
-        return start;
-    }
-
-    public static void setStart(boolean start) {
-        BaseApplication.start = start;
     }
 }

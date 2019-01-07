@@ -12,6 +12,12 @@ public interface Constant {
 
     boolean IS_NEW = true;// 账单批量抓单方式
 
+    String SP_FILE_NAME = "sp_file";
+
+    String SP_INTERCEPT = "sp_intercept";
+
+    String SP_DEVICE_ID = "sp_device_id";
+
     String TAG_ACTIVITY = "tag_activity";
 
     String TAG_LOGIN = "tag_login_fragment";

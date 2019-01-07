@@ -22,6 +22,7 @@ import com.jamff.alipay.bean.LoginResultBean;
 import com.jamff.alipay.util.EncryptUtil;
 import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
+import com.jamff.alipay.util.SPUtils;
 import com.jamff.alipay.util.ToastUtil;
 import com.jamff.alipay.util.UIUtils;
 
@@ -62,8 +63,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        LogUtil.d(Constant.TAG_LOGIN, "onCreateView: ");
-
         View view = inflater.inflate(R.layout.fragment_login, container, false);
 
         til_username = view.findViewById(R.id.til_username);
@@ -80,20 +79,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
-    public void onDestroyView() {
-        LogUtil.d(Constant.TAG_LOGIN, "onDestroyView: ");
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onDestroy() {
-        LogUtil.d(Constant.TAG_LOGIN, "onDestroy: ");
-        super.onDestroy();
-    }
-
-    @Override
     public void onDetach() {
-        LogUtil.d(Constant.TAG_LOGIN, "onDetach: ");
         mListener = null;
         super.onDetach();
     }
@@ -149,6 +135,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener {
                             }
                             LogUtil.i(Constant.TAG_HTTP, "login success: " + resultBean.getData());
                             BaseApplication.setUserInfo(resultBean.getData());
+                            SPUtils.INSTANCE.putString(Constant.SP_DEVICE_ID, resultBean.getData().getDevice_id());
                             if (mListener != null) {
                                 mListener.onLoginSuccess();
                                 mListener.dismissProgressDialog();

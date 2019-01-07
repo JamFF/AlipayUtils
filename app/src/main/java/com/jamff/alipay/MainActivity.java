@@ -28,6 +28,7 @@ import com.jamff.alipay.util.EncryptUtil;
 import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.FileHelp;
 import com.jamff.alipay.util.LogUtil;
+import com.jamff.alipay.util.SPUtils;
 import com.jamff.alipay.util.ToastUtil;
 import com.jamff.alipay.util.UIUtils;
 
@@ -72,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     private void initData() {
-        LogUtil.d(Constant.TAG_ACTIVITY, "versionName = " + UIUtils.getVersionName());
 
         PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
         if (pm == null) {
@@ -203,6 +203,7 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
+        SPUtils.INSTANCE.putBoolean(Constant.SP_INTERCEPT, true);
         return true;
     }
 
@@ -222,6 +223,8 @@ public class MainActivity extends AppCompatActivity implements OnFragmentInterac
     }
 
     private void end() {
+
+        SPUtils.INSTANCE.putBoolean(Constant.SP_INTERCEPT, false);
 
         if (BaseApplication.getUserInfo() == null) {
             finish();

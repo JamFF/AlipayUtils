@@ -30,7 +30,9 @@ import java.util.Map;
  * author: JamFF
  * time: 2018/12/14 22:37
  */
-public class CrashHandler implements UncaughtExceptionHandler {
+public enum CrashHandler implements UncaughtExceptionHandler {
+
+    INSTANCE;
 
     private static final String TAG = "CrashHandler";
 
@@ -42,18 +44,6 @@ public class CrashHandler implements UncaughtExceptionHandler {
     private Map<String, String> mInfo = new HashMap<>();
 
     private DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.CHINA);
-
-    private CrashHandler() {
-    }
-
-    /**
-     * 获取CrashHandler实例 ,单例模式
-     */
-    public static CrashHandler getInstance() {
-        if (instance == null)
-            instance = new CrashHandler();
-        return instance;
-    }
 
     public void init() {
 

@@ -31,8 +31,6 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        LogUtil.d(Constant.TAG_TRADE, "onCreateView: ");
-
         View view = inflater.inflate(R.layout.fragment_trade, container, false);
 
         TextView tv_device_no = view.findViewById(R.id.tv_device_no);
@@ -64,19 +62,6 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
     }
 
     @Override
-    public void onDestroyView() {
-        LogUtil.d(Constant.TAG_TRADE, "onDestroyView: ");
-        BaseApplication.setStart(false);
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onDestroy() {
-        LogUtil.d(Constant.TAG_TRADE, "onDestroy: ");
-        super.onDestroy();
-    }
-
-    @Override
     public void onDetach() {
         LogUtil.d(Constant.TAG_TRADE, "onDetach: ");
         mListener = null;
@@ -102,14 +87,12 @@ public class TradeFragment extends Fragment implements View.OnClickListener {
         if (mListener != null) {
             if (mListener.openAlipay()) {
                 LogUtil.d(Constant.TAG_TRADE, "Successfully open the Alipay");
-                BaseApplication.setStart(true);
                 bt_end.setVisibility(View.VISIBLE);
             }
         }
     }
 
     private void stopService() {
-        BaseApplication.setStart(false);
         if (mListener != null) {
             mListener.exit();
         }

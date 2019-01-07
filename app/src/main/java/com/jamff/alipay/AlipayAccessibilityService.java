@@ -18,6 +18,7 @@ import com.jamff.alipay.bean.NotifyResultBean;
 import com.jamff.alipay.util.EncryptUtil;
 import com.jamff.alipay.util.FastJsonUtil;
 import com.jamff.alipay.util.LogUtil;
+import com.jamff.alipay.util.SPUtils;
 import com.jamff.alipay.util.StringUtils;
 import com.jamff.alipay.util.UIUtils;
 
@@ -44,11 +45,16 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
     private boolean untreatedOrder;// 是否存在未处理的订单，新的方式
 
+    private String device_id;
+
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         // 当启动服务的时候就会被调用
-        LogUtil.d(Constant.TAG_SERVICE, "onServiceConnected: ");
+
+        device_id = SPUtils.INSTANCE.getString(Constant.SP_DEVICE_ID);
+
+        LogUtil.d(Constant.TAG_SERVICE, "onServiceConnected: intercept = " + intercept());
 
         // FIXME: 2018/12/18 FLAG_REQUEST_ENHANCED_WEB_ACCESSIBILITY废弃，不再使用
         AccessibilityServiceInfo serviceInfo = getServiceInfo();
@@ -60,8 +66,12 @@ public class AlipayAccessibilityService extends AccessibilityService {
     @SuppressLint("SwitchIntDef")
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        if (!BaseApplication.isStart()) {
-            LogUtil.i(Constant.TAG_SERVICE, "onAccessibilityEvent: start = false");
+        if (!intercept()) {
+            LogUtil.i(Constant.TAG_SERVICE, "onAccessibilityEvent: not intercept");
+            return;
+        }
+        if (TextUtils.isEmpty(device_id)) {
+            LogUtil.i(Constant.TAG_SERVICE, "onAccessibilityEvent: device_id is empty");
             return;
         }
         // 监听窗口变化的回调
@@ -73,7 +83,6 @@ public class AlipayAccessibilityService extends AccessibilityService {
                 LogUtil.i(Constant.TAG_SERVICE, "Notification bar changes");
                 List<CharSequence> texts = event.getText();
                 if (!texts.isEmpty()) {
-                    LogUtil.d(Constant.TAG_SERVICE, "texts is no empty");
                     for (CharSequence text : texts) {
                         String content = text.toString();
                         LogUtil.i(Constant.TAG_SERVICE, content);
@@ -153,6 +162,10 @@ public class AlipayAccessibilityService extends AccessibilityService {
     public void onInterrupt() {
         // 中断服务的回调
         LogUtil.d(Constant.TAG_SERVICE, "onInterrupt: ");
+    }
+
+    private boolean intercept() {
+        return SPUtils.INSTANCE.getBoolean(Constant.SP_INTERCEPT, false);
     }
 
     /**
@@ -283,6 +296,8 @@ public class AlipayAccessibilityService extends AccessibilityService {
             return;
         }
 
+        LogUtil.d(Constant.TAG_SERVICE, "uploadData");
+
         for (BillBean bean : billBeans) {
             String billAmount = bean.getBillAmount();
             if (!billAmount.startsWith("+")) {
@@ -305,8 +320,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
             LogUtil.d(Constant.TAG_SERVICE, "order_sn_unicode: " + order_sn_unicode);*/
 
-            notifyData(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(),
-                    order_sn, trade_amount));
+            notifyData(new NotifyParamBean(device_id, order_sn, trade_amount));
         }
 
         // 退出账单列表
@@ -561,8 +575,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
                             .replace(".", "")// 换算为分
                             .replaceFirst("^0*", "");// 去除头部"0"
 
-                    mParamBeans.add(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(),
-                            "9850181213213015459", trade_amount));
+                    mParamBeans.add(new NotifyParamBean(device_id, "9850181213213015459", trade_amount));
                 }
             }
         }
@@ -649,8 +662,7 @@ public class AlipayAccessibilityService extends AccessibilityService {
 
             LogUtil.d(Constant.TAG_SERVICE, "order_sn_unicode: " + order_sn_unicode);
 
-            notifyData(new NotifyParamBean(BaseApplication.getUserInfo().getDevice_id(),
-                    order_sn_unicode, trade_amount));
+            notifyData(new NotifyParamBean(device_id, order_sn_unicode, trade_amount));
         } catch (Exception e) {
             // WebView第一次加载时找不到，会空指针异常
             LogUtil.e(Constant.TAG_SERVICE, "findTradeInfo: Exception = " + e, e);
